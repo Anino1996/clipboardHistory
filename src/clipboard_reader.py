@@ -1,7 +1,7 @@
 from typing import List
 
 class ClipboardCache:
-    MAX_SIZE_BYTES: int = 10
+    MAX_SIZE_BYTES: int = 100*1024*1024
     
     def __init__(self):
         self._words: List[str] = []
