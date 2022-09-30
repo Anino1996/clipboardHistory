@@ -45,9 +45,8 @@ class ClipboardHistoryApp(object):
             self.word_cache.update_clipboard(word)
             new_menuitem = WordMenuItem(
                 title=word, callback=self.word_callback)
-
             self.app.menu.clear()
-            self.app.menu = [WordMenuItem(title=cached_word, callback=self.word_callback, key=str(idx+1))
+            self.app.menu = [WordMenuItem(title=cached_word, callback=self.word_callback)
                                 for idx, cached_word in enumerate(self.word_cache.get_words())] + self.menu_footer
 
             self.latest_word = new_menuitem
