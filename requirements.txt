@@ -1,0 +1,4 @@
+pyobjc-core==8.5.1
+pyobjc-framework-Cocoa==8.5.1
+pyperclip==1.8.2
+rumps==0.3.0
