@@ -12,3 +12,6 @@ def paste_text(txt: str):
     
     if stderr:
         print (stderr.decode())
+
+def word_size_bytes(word: str) -> int:
+        return len(word.encode("utf-8"))
