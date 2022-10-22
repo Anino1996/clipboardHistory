@@ -2,8 +2,8 @@ from setuptools import setup
 
 APP = ["src/main.py"]
 DATA_FILES = [
-    "src/clipboard_Reader.py", 
-    "src/paste_utils.py", 
+    "src/clipboard_reader.py", 
+    "src/utils.py", 
     "src/word_menuitem.py",
     "src/assets"]
 
