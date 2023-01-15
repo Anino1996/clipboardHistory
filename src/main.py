@@ -1,28 +1,24 @@
 from concurrent.futures import ThreadPoolExecutor
 from tkinter import Menu
+import time
 from clipboard_reader import ClipboardCache
-from paste_utils import paste_text
 from word_menuitem import WordMenuItem
 import rumps
-import uuid
 import pyperclip
 
 
 class ClipboardHistoryApp(object):
-    EMPTY_MENU_ITEM = WordMenuItem(title="No copied words")
 
     def __init__(self, title: str):
         self.app = rumps.App(title, icon="assets/copy.png", template=True, quit_button=None)
         self.menu_footer = [
             rumps.separator,
             rumps.MenuItem("Quit", lambda x: rumps.quit_application(), key="Q")]
-        self.word_cache = ClipboardCache()
-        self.empty = True
-        self.latest_word = self.EMPTY_MENU_ITEM
-        self.app.menu = [self.latest_word, *self.menu_footer]
-        executor = ThreadPoolExecutor(1)
-        executor.submit(self.__watch_clipboard__)
-
+        self.word_cache: ClipboardCache = ClipboardCache()
+        self.app.menu = [*self.word_cache.get_words(), *self.menu_footer]
+        self._cache_updating: bool = False
+        ThreadPoolExecutor(1).submit(self.__watch_clipboard__)
+        ThreadPoolExecutor(1).submit(self.__remove_expired__)
 
     def __watch_clipboard__(self):
             while True:
@@ -36,27 +32,48 @@ class ClipboardHistoryApp(object):
                     print(e)
 
 
-    def run(self):
-        self.app.run()
+    def __remove_expired__(self):
+        while True:
+            time.sleep(1800)
+            if not self._cache_updating:
+                
+                print("Removing Expired values.")
+                try:
+                    self._cache_updating = True
+                    self.word_cache.remove_expired()
+                    self._update_appmenu()
+
+                except Exception as e:
+                    print(e)
+                
+                finally:
+                    self._cache_updating = False
 
 
     def __update_words__(self, word):
-        try:
-            self.word_cache.update_clipboard(word)
-            new_menuitem = WordMenuItem(
-                title=word, callback=self.word_callback)
-            self.app.menu.clear()
-            self.app.menu = [WordMenuItem(title=cached_word, callback=self.word_callback)
-                                for idx, cached_word in enumerate(self.word_cache.get_words())] + self.menu_footer
+        while self._cache_updating:
+            time.sleep(1)
 
-            self.latest_word = new_menuitem
+        try:
+            self._cache_updating = True
+            self.word_cache.update_clipboard(word)
+            self._update_appmenu()
 
         except Exception as e:
             print(e)
 
+        finally:
+            self._cache_updating = False
 
-    def word_callback(self, sender):
-        paste_text(sender.word)
+
+    def _update_appmenu(self):
+        self.app.menu.clear()
+        self.app.menu = [*self.word_cache.get_words(), *self.menu_footer]
+
+
+
+    def run(self):
+        self.app.run()
 
 if __name__ == "__main__":
     ClipboardHistoryApp("Clipboard History").run()
